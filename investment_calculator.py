@@ -76,6 +76,10 @@ def main():
     df = calculate_score(df)
     df = normalize_allocation(df)
     show_portfolio(df)
+    
+    # Save the investment mix for the report generator
+    df.to_csv("data/investment_mix.csv", index=False)
+    print("\nInvestment mix saved to data/investment_mix.csv")
 
 if __name__ == "__main__":
     main()
