@@ -12,7 +12,7 @@ FINAL_REPORT = "data/final_report.csv"
 
 # --- Email Credentials ---
 SENDER_EMAIL = "helanrogyle@gmail.com"
-RECEIVER_EMAIL = "helanrogyhel@gmail.com"
+RECEIVER_EMAIL = "nvnnil06@gmail.com"
 APP_PASSWORD = "edpmhcvhxxzvqyqs"
 
 def send_email_alert(html_content):
@@ -34,6 +34,74 @@ def send_email_alert(html_content):
         print("📧 Professional HTML Email alert sent successfully!")
     except Exception as e:
         print(f"❌ Error sending professional email: {e}")
+
+def send_login_alert(user_email):
+    """Sends a login security alert email to the user's own login email."""
+    if not user_email:
+        return
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = "🔐 Login Alert: Crypto Investment Manager"
+    msg["From"] = SENDER_EMAIL
+    msg["To"] = RECEIVER_EMAIL   # ✅ Always alert the account owner
+
+    html_body = f"""
+    <html>
+    <body style="font-family: Arial, sans-serif; color: #333; line-height: 1.6; margin: 0; padding: 0;">
+        <div style="max-width: 600px; margin: 30px auto; border: 1px solid #E2E8F0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+
+            <!-- Header -->
+            <div style="background: linear-gradient(135deg, #0072FF, #00C6FF); padding: 28px 30px; text-align: center;">
+                <h1 style="color: #FFFFFF; margin: 0; font-size: 22px; font-weight: 700;">Crypto Investment Manager</h1>
+                <p style="color: rgba(255,255,255,0.85); margin: 6px 0 0; font-size: 14px;">Security Notification</p>
+            </div>
+
+            <!-- Body -->
+            <div style="padding: 30px;">
+                <h2 style="color: #0F172A; font-size: 18px; margin-top: 0;">🔐 New Login Detected</h2>
+                <p style="color: #475569;">Hi <b>{user_email}</b>,</p>
+                <p style="color: #475569;">A successful login was recorded to your <b>Crypto Investment Manager</b> account.</p>
+
+                <table style="width:100%; background:#F8FAFC; border-radius:8px; padding:16px; margin:20px 0; border-collapse:separate;">
+                    <tr>
+                        <td style="padding:6px 12px; color:#64748B; font-size:13px; font-weight:600;">ACCOUNT</td>
+                        <td style="padding:6px 12px; color:#0F172A; font-size:13px;">{user_email}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding:6px 12px; color:#64748B; font-size:13px; font-weight:600;">DATE & TIME</td>
+                        <td style="padding:6px 12px; color:#0F172A; font-size:13px;">{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding:6px 12px; color:#64748B; font-size:13px; font-weight:600;">STATUS</td>
+                        <td style="padding:6px 12px; color:#16A34A; font-size:13px; font-weight:700;">✅ Successful</td>
+                    </tr>
+                </table>
+
+                <div style="background:#FFF9C4; border-left:4px solid #FBC02D; border-radius:6px; padding:14px 16px; margin-top:16px;">
+                    <p style="margin:0; color:#78350F; font-size:13px;">
+                        ⚠️ If this was <b>not you</b>, please secure your account immediately by changing your password.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div style="background:#F8FAFC; padding:16px 30px; text-align:center; border-top:1px solid #E2E8F0;">
+                <p style="margin:0; color:#94A3B8; font-size:12px;">© 2026 Crypto Intelligence Hub &nbsp;|&nbsp; Automated Security Alert</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    msg.attach(MIMEText(html_body, "html"))
+
+    try:
+        server = smtplib.SMTP("smtp.gmail.com", 587)
+        server.starttls()
+        server.login(SENDER_EMAIL, APP_PASSWORD)
+        server.send_message(msg)
+        server.quit()
+        print(f"📧 Login alert sent successfully to {user_email}!")
+    except Exception as e:
+        print(f"❌ Error sending login alert: {e}")
 
 def load_data():
     """Loads necessary data for the final report."""
@@ -62,17 +130,20 @@ def generate_alerts(df):
     if df.empty:
         return ""
 
-    print("\n⚠ Investment Alerts:\n")
+    print("\n⚠ Generating Digital Market Insights...\n")
     
     # Identify highlights for the alert
-    high_risk = df[(df["allocation"] > 1) & (df["risk"] == "High")].head(3)
-    high_return = df[df["predicted_return"] > 5].sort_values(by="predicted_return", ascending=False).head(3)
+    # We define "Investment Grade" as assets with positive allocation
+    investment_opportunities = df[df["allocation"] > 0].sort_values(by="allocation", ascending=False).head(5)
+    
+    # Identify high risk assets (top 3 by absolute change)
+    high_risk_assets = df[df["risk"] == "High"].sort_values(by="change", key=abs, ascending=False).head(3)
 
     # Console output for local user
-    if not high_risk.empty:
-        print(f"🚨 High Risk Detected: {', '.join(high_risk['name'])}")
-    if not high_return.empty:
-        print(f"📈 High Return Opportunities Detected!")
+    if not high_risk_assets.empty:
+        print(f"🚨 High Risk Detected: {', '.join(high_risk_assets['name'])}")
+    if not investment_opportunities.empty:
+        print(f"📈 {len(investment_opportunities)} Prime Investment Opportunities Identified!")
 
     # --- Build Professional HTML Body ---
     date_str = datetime.now().strftime('%B %d, %Y')
@@ -82,49 +153,68 @@ def generate_alerts(df):
     <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333;">
         <div style="max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
             <div style="background-color: #1a237e; color: #ffffff; padding: 20px; text-align: center;">
-                <h1 style="margin: 0; font-size: 24px;">Crypto Insight Report</h1>
-                <p style="margin: 5px 0 0; opacity: 0.8;">{date_str}</p>
+                <h1 style="margin: 0; font-size: 24px;">Crypto Portfolio Intelligence</h1>
+                <p style="margin: 5px 0 0; opacity: 0.8;">{date_str} Executive Summary</p>
             </div>
             
             <div style="padding: 20px;">
                 <p>Hello,</p>
-                <p>Your crypto portfolio analysis is complete. Here are the latest market insights based on current volatility and trends.</p>
+                <p>Our analysis engine has processed the latest market data. Here are your personalized investment recommendations and risk warnings.</p>
                 
-                <h3 style="color: #1a237e; border-bottom: 2px solid #1a237e; padding-bottom: 5px;">🔥 Top 5 Recommended Assets</h3>
+                <!-- Section 1: Investment Recommendations -->
+                <h3 style="color: #1a237e; border-bottom: 2px solid #1a237e; padding-bottom: 5px;">✅ Recommended Investment Allocation</h3>
+                <p style="font-size: 14px; color: #666;">Based on current market volatility and predicted returns, here are the top assets to consider for your portfolio:</p>
                 <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
                     <thead>
                         <tr style="background-color: #f5f5f5;">
-                            <th style="padding: 10px; border: 1px solid #e0e0e0; text-align: left;">Asset Name</th>
-                            <th style="padding: 10px; border: 1px solid #e0e0e0; text-align: center;">Risk</th>
-                            <th style="padding: 10px; border: 1px solid #e0e0e0; text-align: right;">Pred. Return</th>
+                            <th style="padding: 10px; border: 1px solid #e0e0e0; text-align: left;">Asset</th>
+                            <th style="padding: 10px; border: 1px solid #e0e0e0; text-align: center;">Risk Level</th>
+                            <th style="padding: 10px; border: 1px solid #e0e0e0; text-align: right;">Allocation (%)</th>
                         </tr>
                     </thead>
                     <tbody>
     """
     
-    for _, row in df.head(5).iterrows():
-        risk_color = "#d32f2f" if row["risk"] == "High" else "#388e3c"
+    for _, row in investment_opportunities.iterrows():
+        risk_color = "#fbc02d" if row["risk"] == "Medium" else ("#d32f2f" if row["risk"] == "High" else "#388e3c")
         html_body += f"""
                         <tr>
                             <td style="padding: 10px; border: 1px solid #e0e0e0;"><b>{row['name']}</b></td>
                             <td style="padding: 10px; border: 1px solid #e0e0e0; text-align: center; color: {risk_color};"><b>{row['risk']}</b></td>
-                            <td style="padding: 10px; border: 1px solid #e0e0e0; text-align: right;">{row['predicted_return']:.2f}%</td>
+                            <td style="padding: 10px; border: 1px solid #e0e0e0; text-align: right;">{row['allocation']:.2f}%</td>
                         </tr>
         """
 
     html_body += """
                     </tbody>
                 </table>
-                
-                <div style="margin-top: 25px; background-color: #fff9c4; padding: 15px; border-radius: 5px; border-left: 5px solid #fbc02d;">
-                    <h4 style="margin: 0; color: #f57f17;">⚠ Action Recommended</h4>
-                    <p style="margin: 5px 0 0; font-size: 14px;">High volatility detected in top movers. Consider rebalancing your portfolio to maintain risk levels.</p>
+
+                <!-- Section 2: Risk Analysis -->
+                <h3 style="color: #d32f2f; border-bottom: 2px solid #d32f2f; padding-bottom: 5px; margin-top: 30px;">⚠️ High Risk Sensitivity Alert</h3>
+                <p style="font-size: 14px; color: #666;">The following assets are currently exhibiting high volatility. Proceed with caution:</p>
+                <ul style="padding-left: 20px;">
+    """
+    
+    if not high_risk_assets.empty:
+        for _, row in high_risk_assets.iterrows():
+            html_body += f"""
+                    <li style="margin-bottom: 5px;"><b>{row['name']}</b>: Currently shows a 24h change of <span style="color: #d32f2f;">{row['change']:.2f}%</span>. Risk: <b>{row['risk']}</b></li>
+            """
+    else:
+        html_body += "<li>No critical high-risk assets detected in top movers.</li>"
+
+    html_body += f"""
+                </ul>
+
+                <div style="margin-top: 25px; background-color: #e8f5e9; padding: 15px; border-radius: 5px; border-left: 5px solid #43a047;">
+                    <h4 style="margin: 0; color: #2e7d32;">💡 Strategist Note</h4>
+                    <p style="margin: 5px 0 0; font-size: 14px;">The current market trend favors <b>{df.iloc[0]['name'] if not df.empty else 'diversification'}</b>. Maintaining a balanced allocation across low and medium risk assets is recommended.</p>
                 </div>
             </div>
             
             <div style="background-color: #f5f5f5; color: #777; padding: 15px; text-align: center; font-size: 12px;">
-                <p style="margin: 0;">This is an automated risk analysis generated by CryptoProject.</p>
-                <p style="margin: 5px 0 0;">© 2026 Helan Finance Hub | All Assets and Data are based on CoinGecko API.</p>
+                <p style="margin: 0;">This is an automated risk analysis generated by CryptoProject Intelligence.</p>
+                <p style="margin: 5px 0 0;">© 2026 Helan Finance Hub | Data source: CoinGecko Analysis Layer.</p>
             </div>
         </div>
     </body>
@@ -132,6 +222,7 @@ def generate_alerts(df):
     """
     
     return html_body
+
 
 def display_report(df):
     """Prints the final investment report table to console."""
