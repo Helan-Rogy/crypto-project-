@@ -59,9 +59,36 @@ RISK_FILE   = "data/risk_analysis.csv"
 INV_FILE    = "data/investment_mix.csv"
 
 
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+try:
+    from database import create_connection, fetch_latest_report
+except ImportError:
+    pass
+
 @st.cache_data
 def load_report():
     """Load final report if available, otherwise build it on-the-fly from source files."""
+    df, last_updated, src = None, None, None
+    
+    # 1. Try to load from database first (for scalability)
+    try:
+        conn = create_connection()
+        db_df = fetch_latest_report(conn)
+        conn.close()
+        if not db_df.empty:
+            df = db_df
+            src = "SQLite Database (reports table)"
+            # Use most recent entry date
+            last_updated = df.iloc[0]["generated_at"]
+            # Rename database columns to match CSV used in rest of app context if needed
+            if "change_24h" in df.columns:
+                df = df.rename(columns={"change_24h": "change"})
+            return df, last_updated, src
+    except Exception as e:
+        print(f"DB Load error: {e}")
+
+    # 2. Fallback to CSV files
     if os.path.exists(REPORT_FILE):
         df = pd.read_csv(REPORT_FILE)
         src = REPORT_FILE
@@ -75,8 +102,8 @@ def load_report():
     else:
         return None, None, None
 
-    mtime = os.path.getmtime(REPORT_FILE) if os.path.exists(REPORT_FILE) else None
-    last_updated = datetime.fromtimestamp(mtime).strftime("%Y-%m-%d %H:%M:%S") if mtime else datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    mtime = os.path.getmtime(REPORT_FILE) if os.path.exists(REPORT_FILE) else os.path.getmtime(RISK_FILE)
+    last_updated = datetime.fromtimestamp(mtime).strftime("%Y-%m-%d %H:%M:%S")
     return df, last_updated, src
 
 

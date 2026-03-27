@@ -12,7 +12,7 @@ FINAL_REPORT = "data/final_report.csv"
 
 # --- Email Credentials ---
 SENDER_EMAIL = "helanrogyle@gmail.com"
-RECEIVER_EMAIL = "nvnnil06@gmail.com"
+RECEIVER_EMAIL = "helanrogyle@gmail.com"  # ✅ Alert the account owner for security notifications
 APP_PASSWORD = "edpmhcvhxxzvqyqs"
 
 def send_email_alert(html_content):

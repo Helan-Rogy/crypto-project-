@@ -162,6 +162,34 @@ with col_bar:
     st.plotly_chart(fig_bar, width="stretch")
 
 # =========================================================
+# ROW 3 – Risk Sensitivity Overview
+# =========================================================
+st.markdown("<br>", unsafe_allow_html=True)
+st.markdown("<div class='section-label'>Market Risk Sensitivity Matrix</div>", unsafe_allow_html=True)
+
+# Scatter plot: 24h Change vs Predicted Return, color by Risk
+fig_scatter = px.scatter(
+    risk_df,
+    x="change",
+    y="predicted_return",
+    color="risk",
+    color_discrete_map={"High": "#EF4444", "Medium": "#F97316", "Low": "#22C55E"},
+    hover_name="name",
+    labels={"change": "24h Price Change (%)", "predicted_return": "Predicted Return (%)"},
+    size=[10] * len(risk_df), # Uniform size for points
+)
+
+fig_scatter.update_layout(
+    margin=dict(t=10, b=40, l=0, r=0),
+    paper_bgcolor="rgba(0,0,0,0)",
+    plot_bgcolor="rgba(248, 250, 252, 0.4)",
+    yaxis=dict(gridcolor="#E2E8F0"),
+    xaxis=dict(gridcolor="#E2E8F0")
+)
+
+st.plotly_chart(fig_scatter, use_container_width=True)
+
+# =========================================================
 # ROW 3 – Alerts Preview (Top 5 High Risk)
 # =========================================================
 st.markdown("---")
